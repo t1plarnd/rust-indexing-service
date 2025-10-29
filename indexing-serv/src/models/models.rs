@@ -2,20 +2,18 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
 use crate::server::db::DbRepository;
-use dotenvy::dotenv; // <-- Додайте use
-use eyre::Result;    // <-- Додайте use
-use std::env;       // <-- Додайте use
+use dotenvy::dotenv; 
+use eyre::Result;   
+use std::env;      
 
-/// Конфігурація додатка, завантажена з .env
 #[derive(Debug, Clone)]
 pub struct Config {
     pub database_url: String,
     pub http_infura_url: String,
 }
 
-// --- ОСНОВНА ЛОГІКА ТЕПЕР ТУТ ---
 impl Config {
-    /// Завантажує конфігурацію з .env файлу
+
     pub fn load() -> Result<Self> {
         dotenv().ok();
         let database_url = env::var("DATABASE_URL")

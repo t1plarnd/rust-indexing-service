@@ -1,23 +1,21 @@
-// src/main.rs
+
 use eyre::Result;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
 
-// --- ФІНАЛЬНІ ВИПРАВЛЕНІ ШЛЯХИ ---
-// Імпортуємо ВСЕ з бібліотеки `indexing_svc`
-use indexing_svc::models::models::{AppState, Config}; // <-- Тепер Config тут
+
+use indexing_svc::models::models::{AppState, Config}; 
 use indexing_svc::server::api::run;
 use indexing_svc::server::db::{DbRepository, PgRepository};
-// --- ---
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // 1. Завантажити конфіг (тепер Config::load() тут)
+
     let app_config = Config::load()?;
     println!("Config loaded.");
 
-    // (решта коду main без змін)
-    // ...
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&app_config.database_url)

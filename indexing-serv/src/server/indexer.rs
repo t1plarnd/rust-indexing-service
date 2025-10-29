@@ -1,19 +1,19 @@
-// src/server/indexer.rs
-use alloy::providers::Provider; // <-- Забираємо неіснуючий ProviderBoxed
+
+use alloy::providers::Provider; 
 use alloy::rpc::types::{BlockId, BlockTransactions, BlockTransactionsKind};
 use tokio::time::{sleep, Duration};
 use std::sync::Arc;
 
-// Імпортуємо наш трейт та модель
+
 use crate::server::db::DbRepository;
 use crate::models::models::TransactionModel;
 
-// --- ВИПРАВЛЕННЯ: Повністю оновлена сигнатура функції ---
+
 pub async fn run_indexer(
     db_repo: Arc<dyn DbRepository>,
     provider: Box<dyn Provider + Send + Sync>,
 ) {
-    // Використовуємо `db_repo`
+
     let last_saved_block_result = db_repo.get_last_saved_block().await;
 
     let mut current_block_num;
@@ -62,7 +62,7 @@ pub async fn run_indexer(
                             tx_time: block_time,
                         };
 
-                        // Використовуємо `db_repo`
+                        
                         if let Err(e) = db_repo.insert_transaction(&tx_model).await {
                             eprintln!("Indexer: Failed to insert tx {}: {}", tx_model.tx_hash, e);
                         }

@@ -1,56 +1,50 @@
-# Dockerfile
 
-# --- Етап 1: Builder ---
 FROM rust:1-slim-bookworm AS builder
 
-# Встановлюємо залежності для sqlx (libpq-dev) та OpenSSL
+
 RUN apt-get update && apt-get install -y libpq-dev pkg-config libssl-dev build-essential
 
 WORKDIR /app
 
-# Кешуємо залежності
+
 COPY Cargo.toml Cargo.lock ./
-# Створюємо фіктивний main.rs/lib.rs для кешування
-# Створюємо повну, але порожню структуру папок
+
 RUN mkdir -p src/server src/models
-# Створюємо порожні файли-модулі, щоб `lib.rs` міг їх знайти
 RUN echo "" > src/server/mod.rs
 RUN echo "" > src/models/mod.rs
 RUN echo "" > src/config.rs
-# Створюємо фіктивні main.rs та lib.rs
 RUN echo "fn main() {}" > src/main.rs
 RUN echo "pub mod config; pub mod models; pub mod server;" > src/lib.rs
 RUN cargo build --release
 RUN rm -f target/release/deps/indexing_svc*
 
-# Копіюємо реальний код, міграції та дані sqlx
+
 COPY src ./src
 COPY migrations ./migrations
 COPY .sqlx ./.sqlx 
 
-# Вказуємо, що потрібно використовувати офлайн-режим
+
 ENV SQLX_OFFLINE=true
-# Збираємо наш реальний додаток
+
 RUN cargo build --release
 
-# --- Етап 2: Final Image ---
+
 FROM debian:bookworm-slim
 
-# Встановлюємо тільки рантайм-залежності (ca-certificates для HTTPS/Infura)
+
 RUN apt-get update && apt-get install -y ca-certificates libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Копіюємо скомпільований бінарний файл
-# "indexing-svc" - це `name` з вашого Cargo.toml
+
 COPY --from=builder /app/target/release/indexing-svc .
 
-# Копіюємо міграції (потрібні для `sqlx::migrate!().run()`)
+
 COPY migrations ./migrations
 
-# Відкриваємо порт (хоча Nginx буде звертатися до нього напряму)
+
 EXPOSE 3000
 
-# Запускаємо додаток
+
 CMD ["./indexing-svc"]
