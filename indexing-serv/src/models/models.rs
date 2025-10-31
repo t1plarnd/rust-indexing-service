@@ -2,41 +2,53 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::sync::Arc;
 use crate::server::db::DbRepository;
-use dotenvy::dotenv; 
-use eyre::Result;   
-use std::env;      
+use dotenv::dotenv;
+use eyre::Result;
+use std::env;
 
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub database_url: String,
-    pub http_infura_url: String,
-    pub start_block: Option<u64>,
+    pub mainnet_rpc_url: String,
     pub usdc_contract_address: String,
+    pub start_block: Option<u64>,
+    pub testnet_rpc_url: String,
+    pub testnet_usdc_address: String,
+    pub private_key: String,
+    pub database_url: String, 
 }
-impl Config {
 
+impl Config {
     pub fn load() -> Result<Self> {
         dotenv().ok();
-        let database_url = env::var("DATABASE_URL")
-            .map_err(|e| eyre::eyre!("DATABASE_URL not set: {}", e))?;
-        let http_infura_url = env::var("HTTP_INFURA_URL")
-            .map_err(|e| eyre::eyre!("HTTP_INFURA_URL not set: {}", e))?;
+        
+        let mainnet_rpc_url = env::var("MAINNET_RPC_URL")?;
+        let usdc_contract_address = env::var("USDC_CONTRACT_ADDRESS")?;
+        let testnet_rpc_url = env::var("TESTNET_RPC_URL")?;
+        let testnet_usdc_address = env::var("TESTNET_USDC_ADDRESS")?;
+        let private_key = env::var("PRIVATE_KEY")
+            .map_err(|e| eyre::eyre!("PRIVATE_KEY not set: {}", e))?;
+        let database_url = env::var("DATABASE_URL")?;
+        
         let start_block = env::var("START_BLOCK").ok().and_then(|s| s.parse().ok());
-        if start_block.is_some() {
-            println!("Config: Found START_BLOCK={}", start_block.unwrap());
-        }
-        let usdc_contract_address = env::var("USDC_CONTRACT_ADDRESS")
-            .map_err(|e| eyre::eyre!("USDC_CONTRACT_ADDRESS not set: {}", e))?;
+
         Ok(Config {
-            database_url,
-            http_infura_url,
-            start_block,
+            mainnet_rpc_url,
             usdc_contract_address,
+            start_block,
+            testnet_rpc_url,
+            testnet_usdc_address,
+            private_key,
+            database_url,
         })
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct SendRequest {
+    pub to_address: String,
+    pub amount_raw: String, 
+}
 
 #[derive(Debug, Clone, Serialize, FromRow)]
 pub struct TransactionModel {
@@ -49,7 +61,6 @@ pub struct TransactionModel {
     pub tx_time: i64,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub struct TransactionFilters {
     pub sender: Option<String>,
@@ -61,8 +72,8 @@ pub struct TransactionFilters {
     pub page_size: Option<u32>
 }
 
-
 #[derive(Clone)]
 pub struct AppState {
     pub db_repo: Arc<dyn DbRepository>,
+    pub config: Arc<Config>, 
 }

@@ -3,7 +3,6 @@ use async_trait::async_trait;
 use eyre::Result;
 use sqlx::{PgPool, QueryBuilder, Error as SqlxError};
 
-
 #[async_trait]
 pub trait DbRepository: Send + Sync {
     async fn get_last_saved_block(&self) -> Result<Option<i64>, SqlxError>;
@@ -16,6 +15,7 @@ pub trait DbRepository: Send + Sync {
 pub struct PgRepository {
     pool: PgPool,
 }
+
 impl PgRepository {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
@@ -33,7 +33,6 @@ impl DbRepository for PgRepository {
             Err(e) => Err(e),
         }
     }
-
 
     async fn insert_transaction(&self, tx: &TransactionModel) -> Result<(), SqlxError> {
         sqlx::query!(
@@ -54,7 +53,6 @@ impl DbRepository for PgRepository {
         Ok(())
     }
 
-
     async fn get_transaction_by_hash(&self, hash: &str) -> Result<TransactionModel, SqlxError> {
         sqlx::query_as!(
             TransactionModel,
@@ -64,7 +62,6 @@ impl DbRepository for PgRepository {
         .fetch_one(&self.pool)
         .await
     }
-
 
     async fn get_transactions(&self, filters: TransactionFilters) -> Result<Vec<TransactionModel>, SqlxError> {
         let mut query_builder: QueryBuilder<sqlx::Postgres> = QueryBuilder::new("SELECT * FROM transactions WHERE 1=1");
