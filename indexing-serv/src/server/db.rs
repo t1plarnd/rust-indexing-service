@@ -100,8 +100,6 @@ impl DbRepository for PgRepository {
         query_builder.push_bind(page_size as i64); 
         query_builder.push(" OFFSET ");
         query_builder.push_bind(offset as i64);
-        // --- ---
-
         query_builder.build_query_as::<TransactionModel>()
             .fetch_all(&self.pool)
             .await
