@@ -91,7 +91,17 @@ impl DbRepository for PgRepository {
             add_where(&mut query_builder);
             query_builder.push("tx_time <= ").push_bind(end_time);
         }
-        query_builder.push(" ORDER BY block_number DESC LIMIT 50");
+
+        query_builder.push(" ORDER BY block_number DESC, log_index DESC"); 
+        let page_size = filters.page_size.unwrap_or(50).min(100); 
+        let page = filters.page.unwrap_or(1);
+        let offset = (page.saturating_sub(1)) * page_size;
+        query_builder.push(" LIMIT ");
+        query_builder.push_bind(page_size as i64); 
+        query_builder.push(" OFFSET ");
+        query_builder.push_bind(offset as i64);
+        // --- ---
+
         query_builder.build_query_as::<TransactionModel>()
             .fetch_all(&self.pool)
             .await

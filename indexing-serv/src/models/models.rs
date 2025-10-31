@@ -57,6 +57,8 @@ pub struct TransactionFilters {
     pub participant: Option<String>,
     pub start_time: Option<i64>, 
     pub end_time: Option<i64>,  
+    pub page: Option<u32>, 
+    pub page_size: Option<u32>
 }
 
 
