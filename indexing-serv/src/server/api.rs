@@ -1,4 +1,3 @@
-
 use axum::{
     extract::{Path, State, Query},
     routing::get,
@@ -8,31 +7,22 @@ use alloy::providers::{Provider, ProviderBuilder};
 use eyre::Result;
 use std::net::SocketAddr;
 use tower_http::cors::{CorsLayer, Any};
-
-
 use crate::models::models::{AppState, Config, TransactionFilters, TransactionModel};
 use crate::server::indexer::run_indexer;
 
+
 pub async fn run(app_state: AppState, app_config: Config) -> Result<()> {
-    let rpc_url = app_config.http_infura_url;
-
-
+    let rpc_url = app_config.clone().http_infura_url;
     let provider: Box<dyn Provider + Send + Sync> = Box::new(ProviderBuilder::new()
         .on_http(rpc_url.parse()?) 
         .boxed()); 
-
-
     let repo_for_indexer = app_state.db_repo.clone();
-    tokio::spawn(run_indexer(repo_for_indexer, provider));
-
-
+    tokio::spawn(run_indexer(repo_for_indexer, provider, app_config));
     let app = Router::new()
         .route("/transactions/:hash", get(get_transaction_by_hash))
         .route("/transactions", get(get_transactions))
         .with_state(app_state)
         .layer(CorsLayer::new().allow_origin(Any));
-
-
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     println!("API server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;

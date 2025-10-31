@@ -10,26 +10,31 @@
       },
       {
         "ordinal": 1,
-        "name": "block_number",
+        "name": "log_index",
         "type_info": "Int8"
       },
       {
         "ordinal": 2,
+        "name": "block_number",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
         "name": "sender",
         "type_info": "Text"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "receiver",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "value_wei",
         "type_info": "Text"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "tx_time",
         "type_info": "Int8"
       }
@@ -40,6 +45,7 @@
       ]
     },
     "nullable": [
+      false,
       false,
       false,
       false,

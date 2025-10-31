@@ -1,11 +1,13 @@
 
 CREATE TABLE IF NOT EXISTS transactions (
-    tx_hash TEXT PRIMARY KEY,
+    tx_hash TEXT NOT NULL,
+    log_index BIGINT NOT NULL, 
     block_number BIGINT NOT NULL,
-    sender TEXT NOT NULL,
-    receiver TEXT,
-    value_wei TEXT NOT NULL,
-    tx_time BIGINT NOT NULL
+    sender TEXT NOT NULL,       
+    receiver TEXT,              
+    value_wei TEXT NOT NULL,    
+    tx_time BIGINT NOT NULL,
+    PRIMARY KEY (tx_hash, log_index)
 );
 
 CREATE INDEX IF NOT EXISTS idx_transactions_sender ON transactions (sender);
