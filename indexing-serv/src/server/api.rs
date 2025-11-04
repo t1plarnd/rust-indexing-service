@@ -15,18 +15,13 @@ use crate::models::models::{AppState, Config, TransactionFilters, TransactionMod
 
 
 pub async fn run(app_state: AppState, app_config: Config) -> Result<()> {
-    println!("Starting API server with indexer...");
-
     let repo_for_indexer = app_state.db_repo.clone();
     let config_clone = app_config.clone();
-    
     tokio::spawn(async move {
-        println!("Starting indexer on mainnet...");
         let provider = ProviderBuilder::new()
             .on_http(config_clone.mainnet_rpc_url.parse().unwrap());
         run_indexer(repo_for_indexer, provider, config_clone).await;
     });
-
     let app = Router::new()
         .route("/transactions/:hash", get(get_transaction_by_hash))
         .route("/transactions", get(get_transactions))
@@ -34,14 +29,7 @@ pub async fn run(app_state: AppState, app_config: Config) -> Result<()> {
         .with_state(app_state)
         .layer(CorsLayer::new().allow_origin(Any));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    println!("API server listening on {}", addr);
-    println!("Server started successfully!");
-    println!("Available endpoints:");
-    println!("   GET  /transactions - List indexed transactions");
-    println!("   GET  /transactions/:hash - Get transaction by hash"); 
-    println!("   POST /send - Prepare testnet transaction");
-    
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));   
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
 
@@ -73,9 +61,6 @@ async fn send_transaction(
     State(state): State<AppState>,
     Json(payload): Json<SendRequest>,
 ) -> Result<Json<String>, String> {
-    println!("Preparing testnet transaction...");
-    println!("   To: {}", payload.to_address);
-    println!("   Amount: {}", payload.amount_raw);
 
     let to_addr = Address::from_str(&payload.to_address)
         .map_err(|e| format!("Invalid 'to_address': {}", e))?;
@@ -88,8 +73,6 @@ async fn send_transaction(
 
     let _usdc_address = Address::from_str(&state.config.testnet_usdc_address)
         .map_err(|e| format!("Invalid Testnet USDC Address: {}", e))?;
-
-    println!("All validations passed!");
     
     Ok(Json(format!(
         "Transaction prepared successfully!\n\n Details:\n• To: {}\n• Amount: {} USDC\n• Network: Sepolia Testnet\n• Status: Ready to send",

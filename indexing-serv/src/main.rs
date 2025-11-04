@@ -13,14 +13,12 @@ use server::db::{DbRepository, PgRepository};
 #[tokio::main]
 async fn main() -> Result<()> {
     let app_config = Config::load()?;
-    println!("Config loaded.");
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&app_config.database_url)
         .await?;
-    println!("Database connected.");
     match sqlx::migrate!().run(&pool).await {
-        Ok(_) => println!("Migrations applied successfully."),
+        Ok(_) =>,
         Err(e) => {
             eprintln!("Migration error: {}", e);
             eprintln!("Try running: docker-compose down --volumes && docker-compose up");
@@ -35,7 +33,6 @@ async fn main() -> Result<()> {
         config: Arc::new(app_config.clone())
     };
 
-    println!("Starting API server...");
     run(app_state, app_config).await?;
 
     Ok(())

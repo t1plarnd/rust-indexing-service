@@ -49,9 +49,6 @@ pub async fn run_indexer(
                 return;
             }
         };
-        println!("Indexer: Starting from latest MAINNET block {}", current_block_num);
-    } else {
-         println!("Indexer: Starting MAINNET scan from block {}", current_block_num);
     }
     
     loop {
@@ -65,7 +62,6 @@ pub async fn run_indexer(
         };
 
         if current_block_num > latest_block {
-            println!("Indexer: Caught up to MAINNET head. Waiting for new blocks...");
             sleep(Duration::from_secs(10)).await;
             continue;
         }
@@ -78,13 +74,9 @@ pub async fn run_indexer(
             .from_block(current_block_num)
             .to_block(to_block);
 
-        println!("Indexer: Scanning MAINNET block range {}-{}...", current_block_num, to_block);
-
         match provider.get_logs(&filter).await {
             Ok(logs) => {
-                if !logs.is_empty() {
-                    println!("Indexer: Found {} MAINNET USDC events in range", logs.len());
-                    
+                if !logs.is_empty() {                  
                     let block_time = match provider.get_block_by_number(to_block.into()).await {
                         Ok(Some(block)) => block.header.timestamp as i64,
                         Ok(None) => {

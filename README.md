@@ -1,41 +1,42 @@
-# Ethereum Індексатор на Rust
+# Ethereum Indexer in Rust
 
-Цей проєкт індексує транзакції Ethereum у базу даних PostgreSQL і надає REST API для їх отримання.
+This project indexes Ethereum transactions into a PostgreSQL database and provides a REST API to retrieve them.
 
-Проєкт використовує `alloy-rs`, `axum`, `sqlx` та `docker-compose`.
+The project uses `alloy-rs`, `axum`, `sqlx`, and `docker-compose`.
 
-## Як запустити
+## How to Run
 
-Використовується Docker Compose для запуску всього стеку (API, База Даних, Nginx).
+Uses Docker Compose to run the entire stack (API, Database, Nginx).
 
-1.  **Вимоги:**
-    * [Docker](https://www.docker.com/get-started)
-    * [Docker Compose](https://docs.docker.com/compose/install/)
+1.  **Requirements:**
+    * Docker
+    * Docker Compose
 
-2.  **Клонуйте репозиторій:**
+2.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your_username/your_project_name.git](https://github.com/your_username/your_project_name.git)
+    git clone https://github.com/your_username/your_project_name.git
     cd your_project_name
     ```
 
-3.  **Створіть файл `.env`:**
-    Скопіюйте шаблон `env.example` і заповніть його вашими даними.
+3.  **Create the .env file:**
+    Copy the env.example template and fill it with your data.
     ```bash
     cp .env.example .env
     ```
-    Вам потрібно відредагувати `.env` та вставити ваш реальний `HTTP_INFURA_URL`.
+    You need to edit .env and insert your actual HTTP_INFURA_URL.
 
-4.  **Запустіть сервіс:**
+4.  **Start the service:**
     ```bash
     docker compose up --build
     ```
 
-5.  **Все!** Сервіс тепер доступний за адресою `http://localhost`.
+5.  **That's it!** The service is now available at http://localhost.
 
-## API Ендпоінти
+## API Endpoints
 
-* `GET /transactions` - Отримати список останніх транзакцій.
-* `GET /transactions?sender=0x...` - Фільтрувати за відправником.
-* `GET /transactions?receiver=0x...` - Фільтрувати за отримувачем.
-* `GET /transactions?participant=0x...` - Фільтрувати за учасником (відправник АБО отримувач).
-* `GET /transactions/:hash` - Отримати одну транзакцію за її хешем.
+* GET /transactions - Get a list of recent transactions
+* GET /transactions?sender=0x... - Filter by sender
+* GET /transactions?receiver=0x... - Filter by receiver
+* GET /transactions?participant=0x... - Filter by participant (sender OR receiver)
+* GET /transactions/:hash - Get a single transaction by its hash
+* POST /send - Prepare testnet transaction
