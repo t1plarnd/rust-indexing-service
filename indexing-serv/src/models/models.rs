@@ -17,7 +17,6 @@ pub struct Config {
     pub private_key: String,
     pub database_url: String, 
 }
-
 impl Config {
     pub fn load() -> Result<Self> {
         dotenv().ok();
@@ -43,13 +42,11 @@ impl Config {
         })
     }
 }
-
 #[derive(Debug, Deserialize)]
 pub struct SendRequest {
     pub to_address: String,
     pub amount_raw: String, 
 }
-
 #[derive(Debug, Clone, Serialize, FromRow)]
 pub struct TransactionModel {
     pub tx_hash: String,
@@ -60,7 +57,6 @@ pub struct TransactionModel {
     pub value_wei: String,
     pub tx_time: i64,
 }
-
 #[derive(Debug, Deserialize)]
 pub struct TransactionFilters {
     pub sender: Option<String>,
@@ -71,7 +67,6 @@ pub struct TransactionFilters {
     pub page: Option<u32>, 
     pub page_size: Option<u32>
 }
-
 #[derive(Clone)]
 pub struct AppState {
     pub db_repo: Arc<dyn DbRepository>,

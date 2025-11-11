@@ -24,9 +24,6 @@ pub async fn run_indexer(
             return;
         }
     };
-
-    println!("Indexer: Starting on MAINNET with USDC contract: {}", usdc_address);
-
     let db_next_block = match db_repo.get_last_saved_block().await {
         Ok(Some(last_block)) => (last_block + 1) as u64,
         Ok(None) => 0,
@@ -36,10 +33,8 @@ pub async fn run_indexer(
             return;
         }
     };
-    
     let config_start_block = config.start_block.unwrap_or(0);
     let mut current_block_num = max(db_next_block, config_start_block);
-    
     if current_block_num == 0 {
         current_block_num = match provider.get_block_number().await {
             Ok(num) => num,
@@ -50,7 +45,6 @@ pub async fn run_indexer(
             }
         };
     }
-    
     loop {
         let latest_block = match provider.get_block_number().await {
             Ok(num) => num,
@@ -60,20 +54,16 @@ pub async fn run_indexer(
                 continue;
             }
         };
-
         if current_block_num > latest_block {
             sleep(Duration::from_secs(10)).await;
             continue;
         }
-
         let to_block = min(current_block_num + BATCH_SIZE - 1, latest_block);
-
         let filter = Filter::new()
             .address(usdc_address)
             .event_signature(TRANSFER_EVENT_TOPIC)
             .from_block(current_block_num)
             .to_block(to_block);
-
         match provider.get_logs(&filter).await {
             Ok(logs) => {
                 if !logs.is_empty() {                  
@@ -97,7 +87,6 @@ pub async fn run_indexer(
                         }
                     }
                 }
-                
                 current_block_num = to_block + 1;
             }
             Err(e) => {
@@ -106,7 +95,6 @@ pub async fn run_indexer(
                 continue; 
             }
         }
-        
         sleep(Duration::from_secs(1)).await;
     }
 }
@@ -118,10 +106,8 @@ async fn process_log(log: Log, block_time: i64, db_repo: Arc<dyn DbRepository>) 
 
     let from = decode_address_from_topic(log.topics()[1]);
     let to = decode_address_from_topic(log.topics()[2]);
-    
     let value_data: &[u8] = &log.data().data.0;
     let value = U256::from_be_slice(value_data);
-
     let tx_model = TransactionModel {
         tx_hash: log.transaction_hash.unwrap_or_default().to_string(),
         log_index: log.log_index.unwrap_or(0) as i64,
@@ -131,7 +117,6 @@ async fn process_log(log: Log, block_time: i64, db_repo: Arc<dyn DbRepository>) 
         value_wei: value.to_string(),
         tx_time: block_time,
     };
-
     db_repo.insert_transaction(&tx_model).await
         .map_err(|e| e.to_string())
 }

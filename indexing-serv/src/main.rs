@@ -1,14 +1,12 @@
-// src/main.rs
 use eyre::Result;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
-
-mod models;
-mod server;
-
 use models::models::{AppState, Config};
 use server::api::run;
 use server::db::{DbRepository, PgRepository};
+mod models;
+mod server;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {

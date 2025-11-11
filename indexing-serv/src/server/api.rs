@@ -64,13 +64,10 @@ async fn send_transaction(
 
     let to_addr = Address::from_str(&payload.to_address)
         .map_err(|e| format!("Invalid 'to_address': {}", e))?;
-    
     let amount = U256::from_str(&payload.amount_raw)
         .map_err(|e| format!("Invalid 'amount_raw': {}", e))?;
-
     let _signer = PrivateKeySigner::from_str(&state.config.private_key)
         .map_err(|e| format!("Invalid PRIVATE_KEY: {}", e))?;
-
     let _usdc_address = Address::from_str(&state.config.testnet_usdc_address)
         .map_err(|e| format!("Invalid Testnet USDC Address: {}", e))?;
     
