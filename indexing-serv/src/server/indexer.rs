@@ -7,10 +7,9 @@ use std::cmp::{max, min};
 use std::str::FromStr;
 use crate::server::db::DbRepository;
 use crate::models::models::{TransactionModel, Config};
+use tracing::{info, error};
 
-const TRANSFER_EVENT_TOPIC: FixedBytes<32> =
-    b256!("ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
-
+const TRANSFER_EVENT_TOPIC: FixedBytes<32> = b256!("ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
 const BATCH_SIZE: u64 = 100;
 
 pub async fn run_indexer(
@@ -20,7 +19,7 @@ pub async fn run_indexer(
     let usdc_address = match Address::from_str(&config.usdc_contract_address) {
         Ok(addr) => addr,
         Err(e) => {
-            eprintln!("Indexer: Invalid MAINNET USDC_CONTRACT_ADDRESS: {}. Shutting down.", e);
+            error!("Indexer: Invalid MAINNET USDC_CONTRACT_ADDRESS: {}. Shutting down.", e);
             return;
         }
     };
@@ -28,7 +27,7 @@ pub async fn run_indexer(
         Ok(Some(last_block)) => (last_block + 1) as u64,
         Ok(None) => 0,
         Err(e) => {
-            eprintln!("Indexer: Failed to get last block from DB: {}. Retrying in 10s.", e);
+            error!("Indexer: Failed to get last block from DB: {}. Retrying in 10s.", e);
             sleep(Duration::from_secs(10)).await;
             return;
         }
@@ -39,7 +38,7 @@ pub async fn run_indexer(
         current_block_num = match provider.get_block_number().await {
             Ok(num) => num,
             Err(e) => {
-                eprintln!("Indexer: Failed to get block number from MAINNET: {}. Retrying in 10s.", e);
+                error!("Indexer: Failed to get block number from MAINNET: {}. Retrying in 10s.", e);
                 sleep(Duration::from_secs(10)).await;
                 return;
             }
@@ -49,7 +48,7 @@ pub async fn run_indexer(
         let latest_block = match provider.get_block_number().await {
             Ok(num) => num,
             Err(e) => {
-                eprintln!("Indexer: Failed to get latest MAINNET block number: {}. Retrying...", e);
+                error!("Indexer: Failed to get latest MAINNET block number: {}. Retrying...", e);
                 sleep(Duration::from_secs(5)).await;
                 continue;
             }
@@ -70,27 +69,26 @@ pub async fn run_indexer(
                     let block_time = match provider.get_block_by_number(to_block.into()).await {
                         Ok(Some(block)) => block.header.timestamp as i64,
                         Ok(None) => {
-                            eprintln!("Indexer: MAINNET Block {} not found. Retrying...", to_block);
+                            error!("Indexer: MAINNET Block {} not found. Retrying...", to_block);
                             sleep(Duration::from_secs(5)).await;
                             continue;
                         }
                         Err(e) => {
-                            eprintln!("Indexer: Failed to get MAINNET block header for {}: {}. Retrying...", to_block, e);
+                            error!("Indexer: Failed to get MAINNET block header for {}: {}. Retrying...", to_block, e);
                             sleep(Duration::from_secs(5)).await;
                             continue;
                         }
                     };
-
                     for log in logs {
                         if let Err(e) = process_log(log, block_time, db_repo.clone()).await {
-                            eprintln!("Indexer: Failed to process MAINNET log: {}", e);
+                            error!("Indexer: Failed to process MAINNET log: {}", e);
                         }
                     }
                 }
                 current_block_num = to_block + 1;
             }
             Err(e) => {
-                eprintln!("Indexer: Error fetching MAINNET logs for range: {}. Retrying...", e);
+                error!("Indexer: Error fetching MAINNET logs for range: {}. Retrying...", e);
                 sleep(Duration::from_secs(5)).await;
                 continue; 
             }
@@ -103,7 +101,6 @@ async fn process_log(log: Log, block_time: i64, db_repo: Arc<dyn DbRepository>) 
     if log.topics().len() != 3 {
         return Err(format!("Invalid log topics length for tx: {}", log.transaction_hash.unwrap_or_default()));
     }
-
     let from = decode_address_from_topic(log.topics()[1]);
     let to = decode_address_from_topic(log.topics()[2]);
     let value_data: &[u8] = &log.data().data.0;

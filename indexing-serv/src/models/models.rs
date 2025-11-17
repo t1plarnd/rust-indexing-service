@@ -5,7 +5,7 @@ use crate::server::db::DbRepository;
 use dotenv::dotenv;
 use eyre::Result;
 use std::env;
-
+use tracing::{info, error};
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -20,7 +20,6 @@ pub struct Config {
 impl Config {
     pub fn load() -> Result<Self> {
         dotenv().ok();
-        
         let mainnet_rpc_url = env::var("MAINNET_RPC_URL")?;
         let usdc_contract_address = env::var("USDC_CONTRACT_ADDRESS")?;
         let testnet_rpc_url = env::var("TESTNET_RPC_URL")?;
@@ -28,9 +27,7 @@ impl Config {
         let private_key = env::var("PRIVATE_KEY")
             .map_err(|e| eyre::eyre!("PRIVATE_KEY not set: {}", e))?;
         let database_url = env::var("DATABASE_URL")?;
-        
         let start_block = env::var("START_BLOCK").ok().and_then(|s| s.parse().ok());
-
         Ok(Config {
             mainnet_rpc_url,
             usdc_contract_address,

@@ -6,10 +6,11 @@ use server::api::run;
 use server::db::{DbRepository, PgRepository};
 mod models;
 mod server;
-
+use tracing::{info, error};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
     let app_config = Config::load()?;
     let pool = PgPoolOptions::new()
         .max_connections(5)
@@ -18,19 +19,17 @@ async fn main() -> Result<()> {
     match sqlx::migrate!().run(&pool).await {
         Ok(_) =>,
         Err(e) => {
-            eprintln!("Migration error: {}", e);
-            eprintln!("Try running: docker-compose down --volumes && docker-compose up");
+            error!("Migration error: {}", e);
+            error!("Try running: docker-compose down --volumes && docker-compose up");
             std::process::exit(1);
         }
     }
-
     let db_repo_impl = PgRepository::new(pool.clone());
     let db_repo: Arc<dyn DbRepository> = Arc::new(db_repo_impl);
     let app_state = AppState { 
         db_repo, 
         config: Arc::new(app_config.clone())
     };
-
     run(app_state, app_config).await?;
 
     Ok(())

@@ -2,7 +2,7 @@ use crate::models::models::{TransactionFilters, TransactionModel};
 use async_trait::async_trait;
 use eyre::Result;
 use sqlx::{PgPool, QueryBuilder, Error as SqlxError};
-
+use tracing::{info, error};
 
 #[async_trait]
 pub trait DbRepository: Send + Sync {
@@ -20,7 +20,6 @@ impl PgRepository {
         Self { pool }
     }
 }
-
 #[async_trait]
 impl DbRepository for PgRepository {
     async fn get_last_saved_block(&self) -> Result<Option<i64>, SqlxError> {
@@ -32,7 +31,6 @@ impl DbRepository for PgRepository {
             Err(e) => Err(e),
         }
     }
-
     async fn insert_transaction(&self, tx: &TransactionModel) -> Result<(), SqlxError> {
         sqlx::query!(
             r#"INSERT INTO transactions (tx_hash, log_index, block_number, sender, receiver, value_wei, tx_time) 
@@ -51,7 +49,6 @@ impl DbRepository for PgRepository {
         
         Ok(())
     }
-
     async fn get_transaction_by_hash(&self, hash: &str) -> Result<TransactionModel, SqlxError> {
         sqlx::query_as!(
             TransactionModel,
@@ -61,11 +58,9 @@ impl DbRepository for PgRepository {
         .fetch_one(&self.pool)
         .await
     }
-
     async fn get_transactions(&self, filters: TransactionFilters) -> Result<Vec<TransactionModel>, SqlxError> {
         let mut query_builder: QueryBuilder<sqlx::Postgres> = QueryBuilder::new("SELECT * FROM transactions WHERE 1=1");
         let add_where = |builder: &mut QueryBuilder<sqlx::Postgres>| {builder.push(" AND ");};
-
         if let Some(sender) = filters.sender {
             add_where(&mut query_builder);
             query_builder.push("sender = ").push_bind(sender);
@@ -87,7 +82,6 @@ impl DbRepository for PgRepository {
             add_where(&mut query_builder);
             query_builder.push("tx_time <= ").push_bind(end_time);
         }
-
         query_builder.push(" ORDER BY block_number DESC, log_index DESC"); 
         let page_size = filters.page_size.unwrap_or(50).min(100); 
         let page = filters.page.unwrap_or(1);

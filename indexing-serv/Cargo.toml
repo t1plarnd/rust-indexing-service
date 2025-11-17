@@ -6,8 +6,8 @@ edition = "2021"
 [dependencies]
 alloy = { version = "1.0", features = ["full"] }
 alloy-sol-types = "1.0"
-alloy-contract = "1.0"  # ДОДАНО
-alloy-dyn-abi = "1.0"   # ДОДАНО
+alloy-contract = "1.0"  
+alloy-dyn-abi = "1.0"  
 tokio = { version = "1", features = ["full"] }
 axum = { version = "0.7", features = ["macros"] }
 tower-http = { version = "0.5", features = ["cors"] }
@@ -16,3 +16,5 @@ eyre = "0.6"
 dotenv = "0.15"
 async-trait = "0.1"
 serde = { version = "1.0", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
