@@ -14,7 +14,7 @@ Uses Docker Compose to run the entire stack (API, Database, Nginx).
 
 2.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your_username/your_project_name.git
+    git clone https://github.com/t1plarnd/rust-ethereum-indexing-service.git
     cd your_project_name
     ```
 
